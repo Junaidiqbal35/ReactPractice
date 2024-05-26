@@ -1,13 +1,16 @@
 // eslint-disable-next-line no-unused-vars
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export default function Login() {
     const [credentials, setCredentials] = useState({ email: '', password: '' });
     const [error, setError] = useState(''); // State to hold error messages
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
+        // # {'email': 'asdasdasdasdsadsa'}
         setCredentials({ ...credentials, [name]: value });
 
         // Clear error message when user starts typing
@@ -17,25 +20,37 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // Update the URL with the actual endpoint of your authentication API
-            const response = await axios.post('http://localhost:8000/api/v1/account/login/', credentials);
-            console.log(response)
-            localStorage.setItem('token', response.data.access);
-            // Handle response data (e.g., saving the token and redirecting the user)
+            const response = await axios.post('http://127.0.0.1:8000/api/v1/account/login/', credentials);
+            // localStorage.setItem('token', response.data.access);
+            console.log(response.data)
+
+            // if (response.data && !response.data.status) {
+            //     // Custom error handling when 'status' is False in response data
+            //     setError(response.data.message || "An unexpected error occurred during login.");
+            // } else {
+                // Assuming 'token' would be the appropriate key for the token in a successful response
+                localStorage.setItem('token', response.data.token);
+                // Redirect or perform further actions
+                navigate('/home'); //
+                console.log("Login successful", response)
+            // }
+
+
+            // ... additional actions such as redirecting the user
         } catch (error) {
             if (error.response) {
-                // If the request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                setError(error.response.data.message || "An error occurred during login.");
+                console.error("Server responded with an error:", error.response);
+                setError(error.response.data.detail || "An error occurred during login.");
             } else if (error.request) {
-                // The request was made but no response was received
+                console.error("No response received from server:", error.request);
                 setError("No response received from server.");
             } else {
-                // Something happened in setting up the request that triggered an error
+                console.error("Error setting up login request:", error.message);
                 setError("Error setting up login request.");
             }
         }
     };
+
 
     return (
         <div>
